@@ -10,32 +10,13 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
+from Helpers import PolyCoefficients, timestampToHourFraction
+
 load_dotenv()
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-
-def timestampToHourFraction(time):
-    time_val = time.hour
-    time_val = time_val + (time.minute / 60)
-    time_val = time_val + (time.second / 6000)
-
-    time_val = round(time_val, 2)
-
-    return time_val
-
-def PolyCoefficients(x, coeffs):
-    """ Returns a polynomial for ``x`` values for the ``coeffs`` provided.
-
-    The coefficients must be in ascending order (``x**0`` to ``x**o``).
-    """
-    o = len(coeffs)
-    # print(f'# This is a polynomial of order {o}.')
-    y = 0
-    for i in range(o):
-        y += coeffs[i]*x**i
-    return y
 
 data_response = (
     supabase.table("data").select("*").execute()

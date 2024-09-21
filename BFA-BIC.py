@@ -9,79 +9,13 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
+from Helpers import PolyCoefficients, coeffsToEquation, timestampToHourFraction
+
 load_dotenv()
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-
-def toSuperscript(number):
-    out = ""
-    for i in range(0, len(number)):
-        curr = number[i]
-        if i == 0 and curr == "0":
-            continue
-
-        if curr == "1":
-            out += chr(int("00B9", 16))
-        elif curr == "2" or curr == "3":
-            out += chr(int("00B" + curr, 16))
-        else:
-            out += chr(int("207" + curr, 16))
-
-    return out
-
-def coeffsToEquation(coeffs):
-    regex = "(-?)([0-9]*).([0-9]{2})e([-+])([0-9]+)"
-    eq = ""
-    for i in range(0, len(coeffs)):
-        currIndex = len(coeffs) - i - 1
-        sci = '{:.2e}'.format(float(coeffs[currIndex]))
-        match = re.match(regex, sci)
-
-        if i != 0:
-            if match[1] != "-":
-                eq += " + "
-            else:
-                eq += " - "
-
-        if int(match[5]) <= 2:
-            raw_val = float(match[2] + "." + match[3]) * 10 ** (int(match[5]) * (int(match[4] + "1")))
-            trunc_val = '{:.3f}'.format(raw_val)
-
-            while trunc_val[-1] == "0":
-                trunc_val = trunc_val[:-1]
-            if trunc_val[-1] == ".":
-                trunc_val = trunc_val[:-1]
-
-            eq += trunc_val
-        else:
-            eq += match[2] + "." + match[3] + match[4] + "e" + toSuperscript(match[5])
-
-        if currIndex != 0:
-            eq += "x" + toSuperscript(str(currIndex))
-
-    return eq
-
-def timestampToHourFraction(time):
-    time_val = time.hour
-    time_val = time_val + (time.minute / 60)
-    time_val = time_val + (time.second / 6000)
-
-    time_val = round(time_val, 2)
-
-    return time_val
-
-def PolyCoefficients(x, coeffs):
-    """ Returns a polynomial for ``x`` values for the ``coeffs`` provided.
-
-    The coefficients must be in ascending order (``x**0`` to ``x**o``).
-    """
-    o = len(coeffs)
-    y = 0
-    for i in range(o):
-        y += coeffs[i]*x**i
-    return y
 
 data_response = (
     supabase.table("data").select("*").execute()
