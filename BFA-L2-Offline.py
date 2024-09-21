@@ -31,10 +31,8 @@ def PolyCoefficients(x, coeffs):
     yVals = []
 
     for xVal in x:
-        y = 0
         for i in range(0, len(coeffs)):
-            y += coeffs[i] * xVal**i
-        yVals.append(y)
+            yVals.append(coeffs[i] * xVal**i)
 
     return yVals
 
@@ -68,44 +66,17 @@ for users_data in point_dict.keys():
     x = df[['x']]
     y = df[['y']]
 
-    bfl = Ridge(alpha=1.0)
-    bfl.fit(x, y)
-    
-    best_fit_line = []
-
-    polyx = np.linspace(8, 17, 100)
-    polyy = PolyCoefficients(polyx, bfl.coef_)
-
-    for i in range(0, 100):
-        best_fit_line.append((round(polyx[i], 2), round(polyy[i], 2)))
-
-    # figure, axis = plt.subplots(4, 5)
-    # figure.suptitle(f'{point_dict[users_data]['name']}\'s Data')
-
     plt.title(f'{point_dict[users_data]['name']}\'s Data')
     plt.scatter(x, y)
-    plt.plot(polyx, polyy)
 
-    # axis[3, 3].plot(polyx, polyy)
-    # axis[3, 3].set_xlim([8, 17])
-    # axis[3, 3].set_ylim([0, 10])
+    polyx = np.linspace(8, 17, 100)
+    alphas = np.logspace(-3, 4, 200)
+    bfl = Ridge()
 
-    # for i in range(4):
-    #     for j in range(5):
-    #         if ((i*5) + j < len(sols['Degree'])):
-    #             axis[i, j].scatter(x, y)
-    #             polyx = np.linspace(8,17,100)
-    #             axis[i, j].plot(polyx, PolyCoefficients(polyx, sols['COEFS'][(i*4) + j]))
-    #             axis[i, j].set_title('Degree {}'.format(sols['Degree'][(i*5) + j]))
-    #             axis[i, j].set_xlim([8, 17])
-    #             axis[i, j].set_ylim([0, 10])
+    for a in alphas:
+        bfl.set_params(alpha=a).fit(x, y)
+        polyy = bfl.predict(polyx.reshape(100, 1))
 
-    # axis[3,4].plot('Degree', 'BIC', data=sols)
-
-    # table = DataFrame(sols, columns=['Degree', 'BIC', 'YP'], index=None)
-    print(x)
-    print(y)
-    # print(table)
-    # print(f'Best {best + 1}')
+        plt.plot(polyx, polyy)
 
     plt.show()
